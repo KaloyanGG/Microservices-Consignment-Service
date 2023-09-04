@@ -1,4 +1,5 @@
 import { Express, Request, Response } from "express";
+import { addInvoice, getAllInvoices, getInvoiceByInvoiceNumber } from "../controller/invoices.controller";
 // import { addOrganization, deleteOrganizationById, getAllOrganizations, getOrganizationById } from "../controller/organization.controller";
 
 export default function registerRoutes(app: Express) {
@@ -12,6 +13,11 @@ export default function registerRoutes(app: Express) {
         console.log(' 👨‍⚕️ Health Checked!');
     });
 
+    app.get('/invoices', getAllInvoices);
+
+    app.get('/invoices/:id', getInvoiceByInvoiceNumber);
+
+    app.post('/invoices', addInvoice);
 
 
 

@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consignment-service
+  labels:
+    app: consignment-service
+spec:
+  selector:
+    matchLabels:
+      app: consignment-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: consignment-service
+    spec:
+      containers:
+        - name: app
+          image: koko120/consignment-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+#          env:
+#            - name: PG_CONNECTION_STRING
+#              value: postgres://postgres@fortune-cookies-db/postgres
+#      imagePullSecrets:
+#        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: consignment-service
+spec:
+  selector:
+    app: consignment-service
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+#---
+#apiVersion: networking.k8s.io/v1
+#kind: Ingress
+#metadata:
+#  annotations:
+#    cert.gardener.cloud/purpose: managed
+#    nginx.ingress.kubernetes.io/proxy-body-size: 150m
+#  name: fortune-cookies
+#spec:
+#  rules:
+#    - host: app.ingress.fun.i590201.shoot.canary.k8s-hana.ondemand.com
+#      http:
+#        paths:
+#          - backend:
+#              service:
+#                name: fortune-cookies
+#                port:
+#                  number: 3000
+#            path: /
+#            pathType: Prefix
+#  tls:
+#    - hosts:
+#        - app.ingress.fun.i590201.shoot.canary.k8s-hana.ondemand.com
+#      secretName: app-certs
