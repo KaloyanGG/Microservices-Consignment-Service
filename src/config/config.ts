@@ -12,5 +12,8 @@ export default {
         DATABASE: process.env.DB_DATABASE || 'sakilaa',
         PORT: process.env.DB_PORT as any || 3306,
     },
+    rabbitMQ: {
+        URL: process.env.RABBITMQ_URL || "amqp://localhost:5672",
+    },
     // other configurations...
 };

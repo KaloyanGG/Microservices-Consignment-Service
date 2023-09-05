@@ -18,13 +18,7 @@ class DatabaseConnection {
         };
         console.log('access: ', access);
         this.connection = mysql.createConnection(access);
-        process.on('exit', () => {
-            console.log(' 👋 Closing the connection.');
-            this.connection.end();
-        });
-        process.on('SIGINT', () => {
-            process.exit(0);
-        });
+
     }
 
     public static getInstance(): DatabaseConnection {
@@ -36,6 +30,9 @@ class DatabaseConnection {
 
     public getConnection(): Connection {
         return this.connection;
+    }
+    public endConnection() {
+        this.connection.end();
     }
 
     public async checkConnection() {
