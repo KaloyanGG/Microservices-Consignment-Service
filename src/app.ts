@@ -22,10 +22,7 @@ const [host, port] = [config.host, config.port];
 app.use(express.json()); // Add this middleware to parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Add this middleware to parse URL-encoded bodies
 
-app.get('/try', (req: Request, res: Response) => {
-    rabbitMQService.getChannel()!.sendToQueue('hello', Buffer.from('Hello World!'));
-    res.send('check rabbitMQ');
-})
+
 
 app.listen(port, async () => {
     try {
@@ -35,8 +32,6 @@ app.listen(port, async () => {
         await rabbitMQService.init();
         console.log(' 🐇 RabbitMQ connected!');
         console.log(` ⚡️ Consignment service is running at http://${host}:${port}`);
-
-
 
     } catch (e: any) {
         console.log(` ❌ Error: ${e.message}`);

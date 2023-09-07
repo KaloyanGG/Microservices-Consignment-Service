@@ -3,6 +3,12 @@ export interface Item {
     quantity: number,
 }
 
+export interface ItemFromDB {
+    id: string,
+    item_name: string,
+    price: number,
+}
+
 export interface Order {
     items: Item[],
 }
