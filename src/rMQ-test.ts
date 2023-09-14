@@ -2,7 +2,7 @@
 import amqp from 'amqplib';
 import config from './config/config';
 
-const url = config.rabbitMQ.URL;
+const url = config.rabbitMQ.url;
 
 async function receiveFromRabbitMQ(queue: string = 'hello') {
     try {

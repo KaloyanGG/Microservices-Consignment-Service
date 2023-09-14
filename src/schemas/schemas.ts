@@ -7,5 +7,6 @@ export const ItemSchema = z.object({
 });
 
 export const OrderSchema = z.object({
+    buyerName: z.string(),
     items: z.array(ItemSchema),
 });

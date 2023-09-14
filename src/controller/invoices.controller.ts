@@ -1,15 +1,14 @@
+import { MailService } from './../service/mail.service';
 import { Request, Response } from "express";
-import db_conn from "../database/connection";
 import { OrderValidator } from "../utils/order.validator";
-import { error } from "console";
-import { Invoice, Item } from "../interfaces/interfaces";
 import InvoicesService from "../service/invoices.service";
+import config from "../config/config";
 import rabbitMQService from "../service/rabbitMQ.service";
+import { Invoice } from "../interfaces/interfaces";
 
 export async function getAllInvoices(req: Request, res: Response) {
 
     const invoices = await InvoicesService.getAllInvoices();
-
     res.send(invoices);
 
 }
@@ -40,24 +39,41 @@ export async function addInvoice(req: Request, res: Response) {
     try {
 
 
-        await InvoicesService.insertInvoice(order, res);
-        console.log(' 📝 Invoice added.');
-
-        // await UpdateAccountsAndSendMail();
-
-        // async function UpdateAccountsAndSendMail() {
-        /*
-            const channel = rabbitMQService.getChannel()!;
-            channel.assertExchange('test_exchange', 'direct', { durable: false });
-            const msg = Buffer.from(JSON.stringify(order))
-            channel.publish('test_exchange', 'test_routing_key', msg);
-            console.log(' 📩 [x] Sent %s: "%s"', 'test_severity', msg);
-        */
+        const invoice = await InvoicesService.insertInvoice(order, res);
+        // fake invoice:
+        // const invoice: Invoice = {
+        //     id: 1,
+        //     invoice_number: '123',
+        //     buyer_name: 'test',
+        //     invoice_date: '2021-10-10',
+        //     item_amount: 80,
+        //     invoice_amount: 96,
+        //     issued: false,
         // }
 
+        if (!invoice) {
+            return;
+        }
+
+        console.log(' 📝 Invoice added.');
+        console.log(invoice);
+
+        // await InvoicesService.sendUpdateAccountsMessage(invoice.invoice_amount, invoice.buyer_name);
+
+        await MailService.sendMailMessage(invoice.invoice_amount, invoice.buyer_name, invoice.email);
+
+
+        //TODO: Send the message with the buyer name and money, then implement in the acc, service in the rabbitMQ service
 
         res.send('Successfully added invoice');
     } catch (e: any) {
+        console.log(e);
+
+        if (e.errno === 1452) {
+            res.status(404).send({ error: ' 😢 Buyer not found' });
+            return;
+        }
+
         res.status(500).send({ error: e.message });
     }
 

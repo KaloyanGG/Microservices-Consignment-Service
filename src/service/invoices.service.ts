@@ -1,6 +1,8 @@
 import { Response } from "express";
 import db_conn from "../database/connection";
 import { Invoice, Item, ItemFromDB, Order } from "../interfaces/interfaces";
+import rabbitMQService from "./rabbitMQ.service";
+import config from "../config/config";
 
 export default class InvoicesService {
 
@@ -10,10 +12,21 @@ export default class InvoicesService {
         return rows as any;
     }
 
-    static async insertEmptyInvoice(): Promise<number> {
+    // static async buyerExists(buyerName: string): Promise<boolean> {
+
+    //     const [buyers] = await db_conn.getConnection().promise()
+    //         .query('SELECT * FROM buyer WHERE name = ?', [buyerName]);
+
+    //     return (buyers as any).length > 0;
+
+    // }
+
+    static async insertEmptyInvoice(buyerName: string, res: Response): Promise<number> {
+
         const [result] = await db_conn.getConnection().promise()
-            .query('INSERT INTO invoice_header VALUES()');
+            .query('INSERT INTO invoice_header (buyer_name) VALUES(?)', [buyerName]);
         const id = (result as any).insertId;
+
         return id;
     }
 
@@ -31,7 +44,10 @@ export default class InvoicesService {
     static async getInvoiceById(invoiceId: number): Promise<Invoice> {
 
         const [rows] = await db_conn.getConnection().promise()
-            .query('SELECT * FROM invoice_header WHERE id = ?', [invoiceId]);
+            .query(`SELECT i.id, i.invoice_number, i.item_amount, i.invoice_amount, o.name as buyer_name, o.email FROM invoice_header i
+            JOIN organization o
+            ON i.buyer_name=o.name
+            WHERE id = ?`, [invoiceId]);
 
         const invoice: Invoice = (rows as any)[0];
         return invoice;
@@ -61,11 +77,11 @@ export default class InvoicesService {
                 [itemAmount, itemAmount * 1.2, invoiceId]);
     }
 
-    static async insertInvoice(order: Order, res: Response) {
+    static async insertInvoice(order: Order, res: Response): Promise<Invoice | null> {
 
-        const invoiceId = await this.insertEmptyInvoice();
+        const invoiceId = await this.insertEmptyInvoice(order.buyerName, res);
 
-        const invoiceFromDB = await this.getInvoiceById(invoiceId);
+        const invoiceFromDB: Invoice = await this.getInvoiceById(invoiceId);
 
 
         for (const item of order.items) {
@@ -75,7 +91,7 @@ export default class InvoicesService {
             //check if item exists
             if (!itemFromDB) {
                 res.status(404).send({ error: ' 😢 Item not found' });
-                return;
+                return null;
             }
 
             // insert into invoice_line_item
@@ -86,6 +102,21 @@ export default class InvoicesService {
 
         }
 
+        return await this.getInvoiceById(invoiceId);
+
+    }
+
+
+    static async sendUpdateAccountsMessage(amount: number, name: string) {
+        const rabbitMQConfig = config.rabbitMQ;
+
+        const channel = rabbitMQService.getChannel()!;
+        channel.assertExchange(rabbitMQConfig.exchange, 'direct', { durable: false });
+        const msg = Buffer.from(JSON.stringify({ amount, name }));
+
+        channel.publish(rabbitMQConfig.exchange, rabbitMQConfig.routingKey, msg);
+
+        console.log(' 📩 [x] Sent to route "%s": %s', rabbitMQConfig.routingKey, { amount, name });
     }
 
 

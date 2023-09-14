@@ -1,6 +1,7 @@
 import { Express, Request, Response } from "express";
 import { addInvoice, getAllInvoices, getInvoiceByInvoiceNumber } from "../controller/invoices.controller";
 import rabbitMQService from "../service/rabbitMQ.service";
+import config from "../config/config";
 // import { addOrganization, deleteOrganizationById, getAllOrganizations, getOrganizationById } from "../controller/organization.controller";
 
 export default function registerRoutes(app: Express) {
@@ -23,6 +24,19 @@ export default function registerRoutes(app: Express) {
         res.send('OK');
     })
 
+    app.post('/test-messaging', (req: Request, res: Response) => {
+
+        const rabbitMQConfig = config.rabbitMQ;
+
+        const channel = rabbitMQService.getChannel()!;
+        channel.assertExchange(rabbitMQConfig.exchange, 'direct', { durable: false });
+        const msg = Buffer.from(JSON.stringify(req.body));
+        channel.publish(rabbitMQConfig.exchange, rabbitMQConfig.routingKey, msg);
+        console.log(' 📩 [x] Sent to route "%s": "%s"', rabbitMQConfig.routingKey, req.body);
+
+        res.send('OK');
+
+    });
 
 
     app.get('/', async (req: Request, res: Response) => {

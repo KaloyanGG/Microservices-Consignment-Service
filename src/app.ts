@@ -1,6 +1,6 @@
 import express, { Request, Response, Express } from 'express';
 import dotenv from 'dotenv';
-import connection from './database/connection';
+import dbConn from './database/connection';
 import config from './config/config';
 import registerRoutes from './routes/routes';
 import rabbitMQService from './service/rabbitMQ.service';
@@ -8,7 +8,7 @@ import rabbitMQService from './service/rabbitMQ.service';
 const app: Express = express();
 
 process.on('exit', () => {
-    connection.endConnection();
+    dbConn.endConnection();
     rabbitMQService.closeConnection();
     console.log(' ✋ Bye Bye!');
 })
@@ -23,11 +23,10 @@ app.use(express.json()); // Add this middleware to parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Add this middleware to parse URL-encoded bodies
 
 
-
 app.listen(port, async () => {
     try {
         registerRoutes(app);
-        await connection.checkConnection();
+        await dbConn.checkConnection();
         console.log(' 📚 Database connected!');
         await rabbitMQService.init();
         console.log(' 🐇 RabbitMQ connected!');
