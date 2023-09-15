@@ -116,6 +116,9 @@ export default class InvoicesService {
 
         channel.publish(rabbitMQConfig.exchange, rabbitMQConfig.routingKey, msg);
 
+        console.log(' 🔢 Exchange and then routing key:')
+        console.log(rabbitMQConfig.exchange, rabbitMQConfig.routingKey, msg);
+
         console.log(' 📩 [x] Sent to route "%s": %s', rabbitMQConfig.routingKey, { amount, name });
     }
 

@@ -58,7 +58,7 @@ export async function addInvoice(req: Request, res: Response) {
         console.log(' 📝 Invoice added.');
         console.log(invoice);
 
-        // await InvoicesService.sendUpdateAccountsMessage(invoice.invoice_amount, invoice.buyer_name);
+        await InvoicesService.sendUpdateAccountsMessage(invoice.invoice_amount, invoice.buyer_name);
 
         await MailService.sendMailMessage(invoice.invoice_amount, invoice.buyer_name, invoice.email);
 

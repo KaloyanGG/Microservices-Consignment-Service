@@ -9,7 +9,7 @@
     "prestart": "tsc",
     "start": "node dist/app.js",
     "dev": "tsc && nodemon src/app.ts",
-    "debug": "tsc && node --inspect-brk dist/app.js"
+    "debug": "tsc && node --debug-port 9230 --inspect-brk dist/app.js "
   },
   "dependencies": {
     "amqplib": "^0.10.3",
